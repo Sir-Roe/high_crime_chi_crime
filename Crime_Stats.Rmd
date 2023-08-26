@@ -21,7 +21,7 @@ I will utilize the count of the crime instead of the general per-capita measurem
 
 **My Hypothesis:**
 
-H0: There was no significant increase in crime during the years of shutdown 2020-2022
+H0: Covid lockdowns had no significant effect on crime during the years of shutdown 2020-2022
 
 H1: There was a significant increase in crime during the years of shutdown 2020-2022
 
@@ -112,3 +112,55 @@ write.csv(ndf, "C:/Users/Logan/Documents/GitHub/high_crime_chi_crime/2017-2022_A
 
 **Explore and Visualize the data:**
 
+```{r}
+df = read.csv("C:/Users/lmpro/Documents/GitHub/high_crime_chi_crime/2017-2022_Agg_Crime.csv")
+df
+```
+
+```{r}
+df <- df%>% transform(df,
+                year_month=str_replace(year_month,'-','\\.'))
+
+
+```
+
+```{r}
+df <- df%>% transform(df,
+                year_month=as.numeric(year_month))
+df <- df%>% filter(year_month != "NA")
+df
+```
+
+```{r}
+sdf <-  df%>%
+  group_by(year_month)%>%
+  dplyr::summarise(
+    crime_count=n(),
+    )
+
+sdf
+
+
+```
+
+```{r}
+ggplot(sdf)+
+  geom_line(mapping=aes(year_month,crime_count))+
+  ylim(775,975)
+```
+
+```{r}
+cor(df$year_month,df$crime_count)
+```
+
+This is not at all what I expected to see in terms of crime over time had a negative effect on crime levels. However, recall we identified the numbers were not per-capita and that there was around a 3% decrease in total population in the Chicago Area during the pandemic, which is strikingly similar to the negative 3% correlation we see. Without further analysis it would be incredibly safe to assume we cannot attribute rising crime levels to covid since the data can not even support the claim of crimes even changing in any significant manner. After doing additional visualizations in excel per the requirements of the capstone we can see the following interesting finds. in the data.
+
+**Crime by Category in Pre Post Covid Introduction to Chicago:**
+
+**Arrest per Crime in Pre-Post Covid Introduction to Chicago:**
+
+**Percent of Crime that was Domestic in Pre-Post Covid Introduction to Chicago:**
+
+```{r}
+df
+```
