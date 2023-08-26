@@ -1,0 +1,114 @@
+---
+title: "Chicago Crime"
+author: "Logan Roe"
+date: "2023-08-25"
+output: html_document
+---
+
+**Chicago Crime between 2017 to 2022**
+
+The Chicago Crime data set is a very robust data set beginning in 2003-2023(rolling but dated to the date of the report.) The unfiltered data set is quite large nearing 8 million records across 22 variables.
+
+[*"Feb. 11, 2020: Illinois becomes first state to test for new coronavirus" -Chicago Tribune*]{.underline}
+
+[*"Feb. 28, 2022: Mask mandates end in most of Chicago and Illinois"-Chicago Tribune*]{.underline}
+
+My hypothesis is that the climate of world events, job insecurity, lock downs, and state of distress from covid-19 had a direct impact and increase on crime beginning in 2020 through to the 2022 during the pandemic.
+
+I will utilize the count of the crime instead of the general per-capita measurement due to the restrictions in the data. However, the census for Chicago shows a \~3% decrease in population in the Chicago area during the available 2020-2022 census.gov records. This would mean any INCREASE in crime would be even more significant. But for the sake of simplicity I will treat the population as a static and non variable during my analysis.
+
+![](images/chrome_DbGAIr8j8A.png)
+
+**My Hypothesis:**
+
+H0: There was no significant increase in crime during the years of shutdown 2020-2022
+
+H1: There was a significant increase in crime during the years of shutdown 2020-2022
+
+**Import Library**
+
+```{r}
+library('tidyverse')
+library('janitor')
+```
+
+```{r}
+df = read.csv('C:/Users/Logan/Downloads/Chi_Crime.csv')
+```
+
+**Clean Column Headers**
+
+```{r}
+df <- df %>% clean_names()
+
+```
+
+**Variables I will drop and why.**
+
+\>Case Number, FBI CODE,BEAT CODE,IUCR: Not Important ID data for me.
+
+*location,x,y coords,block,District(police dist not ward), Community ID:*
+
+I will be focusing on by WARD and ideally some long lat.
+
+updated on : not an important column for the analysis
+
+```{r}
+names(df)
+```
+
+```{r}
+head(df)
+df <- df %>% select(id,date,primary_type,description,location_description,arrest,domestic,ward,year,latitude,longitude)
+```
+
+I have a goal to plot crime on the map so I will remove nulls from these values they are a very small subset of the data. I also want to grab the years leading right before Covid-19 and onwards.
+
+```{r}
+df <-  df %>% filter(!is.na(latitude),!is.na(longitude),(year>2016 & year<2023))
+
+```
+
+Convert to Logical for arrest and domestic
+
+```{r}
+df <- transform(df, arrest = as.logical(arrest),
+          domestic = as.logical(domestic),
+          date = as.POSIXct(date, format = "%m/%d/%Y %I:%M:%S %p"))
+```
+
+```{r}
+df <- df%>%
+      mutate(year_month=format(date, "%Y-%m"))
+```
+
+Final check for any Nulls, Looks Good
+
+```{r}
+names(df)
+```
+
+```{r}
+ndf <- df%>%
+  group_by(year_month,primary_type,ward)%>%
+  dplyr::summarise(
+    crime_count=n(),
+    was_arrested_count=sum(arrest, na.rm = TRUE),
+    was_domestic_count=sum(domestic, na.rm = TRUE)
+    )
+
+ndf
+```
+
+Store my cleaned data frames for ease of access later.
+
+```{r}
+write.csv(df, "C:/Users/Logan/Documents/GitHub/high_crime_chi_crime/2017-2022_Crime.csv", row.names=FALSE)
+```
+
+```{r}
+write.csv(ndf, "C:/Users/Logan/Documents/GitHub/high_crime_chi_crime/2017-2022_Agg_Crime.csv", row.names=FALSE)
+```
+
+**Explore and Visualize the data:**
+
